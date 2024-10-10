@@ -296,7 +296,7 @@
       "type": "text",
       "action": "output",
       "args": {
-        "outputDir": "./output",
+        "outputDir": "./output/cnv4",
         "outputName": "cnv4.txt",
         "wantedList": ["cn", "private"],
         "onlyIPType": "ipv4"
