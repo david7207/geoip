@@ -293,6 +293,16 @@
       }
     },
     {
+      "type": "txt",
+      "action": "output",
+      "args": {
+        "outputDir": "./output",
+        "outputName": "cnv4.txt",
+        "wantedList": ["cn", "private"],
+        "onlyIPType": "ipv4"
+      }
+    },
+    {
       "type": "text",
       "action": "output",
       "args": {
