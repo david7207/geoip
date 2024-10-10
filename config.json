@@ -293,7 +293,7 @@
       }
     },
     {
-      "type": "txt",
+      "type": "text",
       "action": "output",
       "args": {
         "outputDir": "./output",
