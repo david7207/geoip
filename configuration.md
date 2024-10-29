@@ -220,10 +220,10 @@
 
 - **type**：（必须）输入格式的名称
 - **action**：（必须）操作类型，值为 `add`（添加 IP 地址）或 `remove`（移除 IP 地址）
-- **args**：（可选）
+- **args**：（必须）
   - **ipv4**：（可选）MaxMind GeoLite2 ASN IPv4 文件路径（`GeoLite2-ASN-Blocks-IPv4.csv`），可为本地文件路径或远程 `http`、`https` 文件 URL。
   - **ipv6**：（可选）MaxMind GeoLite2 ASN IPv6 文件路径（`GeoLite2-ASN-Blocks-IPv6.csv`），可为本地文件路径或远程 `http`、`https` 文件 URL。
-  - **wantedList**：（可选）指定需要的类别/文件。
+  - **wantedList**：（必须，对象，键为字符串类别名，值为 ASN 字符串数组）指定类别名及其包含的 ASN。
   - **onlyIPType**：（可选）只处理的 IP 地址类型，值为 `ipv4` 或 `ipv6`。
 
 ```jsonc
@@ -232,27 +232,12 @@
 // ./geolite2/GeoLite2-ASN-Blocks-IPv6.csv
 {
   "type": "maxmindGeoLite2ASNCSV",
-  "action": "add" // 添加 IP 地址
-}
-```
-
-```jsonc
-{
-  "type": "maxmindGeoLite2ASNCSV",
-  "action": "add", // 添加 IP 地址
+  "action": "add",                                   // 添加 IP 地址
   "args": {
-    "ipv4": "./geolite2/GeoLite2-ASN-Blocks-IPv4.csv",
-    "ipv6": "./geolite2/GeoLite2-ASN-Blocks-IPv6.csv"
-  }
-}
-```
-
-```jsonc
-{
-  "type": "maxmindGeoLite2ASNCSV",
-  "action": "add",                   // 添加 IP 地址
-  "args": {
-    "wantedList": ["cn", "us", "jp"] // 只需要添加名为 cn、us、jp 的这三个类别的 IPv4 地址 和 IPv6 地址
+    "wantedList": {
+      "facebook": ["AS63293", "AS54115", "AS32934"], // 将隶属于 ASN 的 IPv4 地址 和 IPv6 地址添加到 facebook 类别中
+      "fastly":   ["AS54113", "AS394192"]            // 将隶属于 ASN 的 IPv4 地址 和 IPv6 地址添加到 fastly 类别中
+    }
   }
 }
 ```
@@ -264,7 +249,10 @@
   "args": {
     "ipv4": "./geolite2/GeoLite2-ASN-Blocks-IPv4.csv",
     "ipv6": "./geolite2/GeoLite2-ASN-Blocks-IPv6.csv",    
-    "wantedList": ["cn", "us", "jp"],                  // 只移除名为 cn、us、jp 的这三个类别的 IPv6 地址
+    "wantedList": {
+      "facebook": ["AS63293", "AS54115", "AS32934"],   // 从 facebook 类别中移除隶属于 ASN 的 IPv6 地址
+      "fastly":   ["AS54113", "AS394192"]              // 从 fastly 类别中移除隶属于 ASN 的 IPv6 地址
+    },
     "onlyIPType": "ipv6"                               // 只移除 IPv6 地址
   }
 }
@@ -427,6 +415,8 @@
 
 - **type**：（必须）输入格式的名称
 - **action**：（必须）操作类型，值为 `add`（添加 IP 地址）或 `remove`（移除 IP 地址）
+- **args**：（可选）
+  - **onlyIPType**：（可选）只处理的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 > `private` 默认添加或移除的 CIDR 地址，见 [private.go](https://github.com/Loyalsoldier/geoip/blob/HEAD/plugin/special/private.go#L16-L36)
 
@@ -441,6 +431,26 @@
 {
   "type": "private",
   "action": "remove" // 移除 IP 地址
+}
+```
+
+```jsonc
+{
+  "type": "private",
+  "action": "add",       // 添加 IP 地址
+  "args": {
+    "onlyIPType": "ipv4" // 只添加 IPv4 地址
+  }
+}
+```
+
+```jsonc
+{
+  "type": "private",
+  "action": "remove",    // 移除 IP 地址
+  "args": {
+    "onlyIPType": "ipv6" // 只移除 IPv6 地址
+  }
 }
 ```
 
@@ -718,6 +728,7 @@
   - **outputDir**：（可选）输出目录
   - **outputExtension**：（可选）输出文件的扩展名
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 ```jsonc
@@ -764,6 +775,18 @@
 }
 ```
 
+```jsonc
+{
+  "type": "clashRuleSet",
+  "action": "output",
+  "args": {
+    "outputDir": "./clash/ipcidr",     // 输出文件到目录 ./clash/ipcidr
+    "outputExtension": ".yaml",        // 输出文件的扩展名为 .yaml
+    "excludedList": ["cn", "us", "jp"] // 不输出名为 cn、us、jp 这三个类别的 IPv4 和 IPv6 地址
+  }
+}
+```
+
 ### **clashRuleSetClassical**
 
 - **type**：（必须）输入格式的名称
@@ -772,6 +795,7 @@
   - **outputDir**：（可选）输出目录
   - **outputExtension**：（可选）输出文件的扩展名
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 ```jsonc
@@ -818,6 +842,18 @@
 }
 ```
 
+```jsonc
+{
+  "type": "clashRuleSetClassical",
+  "action": "output",
+  "args": {
+    "outputDir": "./clash/classical",   // 输出文件到目录 ./clash/classical
+    "outputExtension": ".yaml",         // 输出文件的扩展名为 .yaml
+    "excludedList": ["cn", "us", "jp"]  // 不输出名为 cn、us、jp 这三个类别的 IPv4 和 IPv6 地址
+  }
+}
+```
+
 ### **lookup**
 
 - **type**：（必须）输入格式的名称
@@ -858,11 +894,14 @@
   - **outputDir**：（可选）输出目录
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **overwriteList**：（可选，数组）指定最后写入的类别（原因见👇）
 
-> 由于 MaxMind mmdb 文件格式的限制，当不同列表的 IP 或 CIDR 数据有交集或重复项时，后写入的列表的 IP 或 CIDR 数据会覆盖（overwrite）之前已写入的列表的数据。譬如，IP 1.1.1.1 同属于列表 `AU` 和列表 `Cloudflare`。如果 `Cloudflare` 在 `AU` 之后写入，则 IP `1.1.1.1` 归属于列表 `Cloudflare`。
+> 由于 MaxMind mmdb 文件格式的限制，当不同列表的 IP 或 CIDR 数据有交集或重复项时，后写入的列表的 IP 或 CIDR 数据会覆盖（overwrite）之前已写入的列表的数据。譬如，IP `1.1.1.1` 同属于列表 `AU` 和列表 `Cloudflare`。如果 `Cloudflare` 在 `AU` 之后写入，则 IP `1.1.1.1` 最终归属于列表 `Cloudflare`。
 >
 > 为了确保某些指定的列表、被修改的列表一定囊括属于它的所有 IP 或 CIDR 数据，可在 output 输出格式为 `maxmindMMDB` 的配置中增加选项 `overwriteList`，该选项中指定的列表会在最后逐一写入，列表中最后一项优先级最高。若已设置选项 `wantedList`，则无需设置 `overwriteList`。`wantedList` 中指定的列表会在最后逐一写入，列表中最后一项优先级最高。
+>
+> `wantedList`、`overwriteList`、`excludedList` 三者中，`excludedList` 优先级最高。即：若设置了选项 `excludedList`，最终不会输出存在于 `excludedList` 中的列表。
 
 ```jsonc
 // 默认输出目录 ./output/maxmind
@@ -889,8 +928,20 @@
   "type": "maxmindMMDB",
   "action": "output",
   "args": {
+    "outputDir": "./output",                         // 输出文件到 output 目录
+    "outputName": "Country-without-cn-private.mmdb", // 输出文件名为 Country-without-cn-private.mmdb
+    "excludedList": ["cn", "private"]                // 不输出 cn、private 类别
+  }
+}
+```
+
+```jsonc
+{
+  "type": "maxmindMMDB",
+  "action": "output",
+  "args": {
     "outputName": "Country.mmdb",     // 输出文件名为 Country.mmdb
-    "overwriteList": ["cn", "google"] // 确保 cn、google 类别后写入，且 google 最后写入
+    "overwriteList": ["cn", "google"] // 确保 cn、google 类别最后写入，且 google 比 cn 后写入
   }
 }
 ```
@@ -901,8 +952,32 @@
   "action": "output",
   "args": {
     "outputName": "Country.mmdb",      // 输出文件名为 Country.mmdb
-    "overwriteList": ["cn", "google"], // 确保 cn、google 类别后写入，且 google 最后写入
+    "overwriteList": ["cn", "google"], // 确保 cn、google 类别最后写入，且 google 比 cn 后写入
     "onlyIPType": "ipv4"               // 只输出 cn、private 类别的 IPv4 地址
+  }
+}
+```
+
+```jsonc
+{
+  "type": "maxmindMMDB",
+  "action": "output",
+  "args": {
+    "outputName": "Country.mmdb",                 // 输出文件名为 Country.mmdb
+    "excludedList": ["private"],                  // 最终不输出 private 类别
+    "wantedList": ["private" ,"au", "cloudflare"] // 只输出 au、cloudflare 类别，并确保 cloudflare 比 au 后写入。但由于 private 存在于 excludedList 中，最终不输出 private 类别
+  }
+}
+```
+
+```jsonc
+{
+  "type": "maxmindMMDB",
+  "action": "output",
+  "args": {
+    "outputName": "Country.mmdb",                // 输出文件名为 Country.mmdb
+    "excludedList": ["private"],                 // 最终不输出 private 类别
+    "overwriteList": ["private" ,"cn", "google"] // 确保 cn、google 类别最后写入，且 google 比 cn 后写入。但由于 private 存在于 excludedList 中，最终不输出 private 类别
   }
 }
 ```
@@ -914,6 +989,7 @@
 - **args**：（可选）
   - **outputDir**：（可选）输出目录
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 ```jsonc
@@ -940,6 +1016,17 @@
   "type": "mihomoMRS",
   "action": "output",
   "args": {
+    "outputDir": "./output",           // 输出文件到 output 目录
+    "excludedList": ["cn", "private"]  // 不输出 cn、private 类别
+  }
+}
+```
+
+```jsonc
+{
+  "type": "mihomoMRS",
+  "action": "output",
+  "args": {
     "onlyIPType": "ipv4" // 只输出 IPv4 地址
   }
 }
@@ -952,6 +1039,7 @@
 - **args**：（可选）
   - **outputDir**：（可选）输出目录
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 ```jsonc
@@ -978,6 +1066,17 @@
   "type": "singboxSRS",
   "action": "output",
   "args": {
+    "outputDir": "./output",          // 输出文件到 output 目录
+    "excludedList": ["cn", "private"] // 不输出 cn、private 类别
+  }
+}
+```
+
+```jsonc
+{
+  "type": "singboxSRS",
+  "action": "output",
+  "args": {
     "onlyIPType": "ipv4" // 只输出 IPv4 地址
   }
 }
@@ -989,6 +1088,7 @@
 - **action**：（必须）操作类型，值必须为 `output`
 - **args**：（可选）
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 ```jsonc
@@ -1013,6 +1113,16 @@
   "type": "stdout",
   "action": "output",
   "args": {
+    "excludedList": ["cn", "private"] // 不输出 cn、private 类别到 standard output
+  }
+}
+```
+
+```jsonc
+{
+  "type": "stdout",
+  "action": "output",
+  "args": {
     "onlyIPType": "ipv4" // 只输出 IPv4 地址到 standard output
   }
 }
@@ -1026,6 +1136,7 @@
   - **outputDir**：（可选）输出目录
   - **outputExtension**：（可选）输出的文件的扩展名
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
 
 ```jsonc
@@ -1064,6 +1175,18 @@
   "type": "surgeRuleSet",
   "action": "output",
   "args": {
+    "outputDir": "./surge",            // 输出文件到目录 ./surge
+    "outputExtension": ".conf",        // 输出文件的扩展名为 .conf
+    "excludedList": ["cn", "us", "jp"] // 不输出名为 cn、us、jp 这三个类别的 IPv4 和 IPv6 地址
+  }
+}
+```
+
+```jsonc
+{
+  "type": "surgeRuleSet",
+  "action": "output",
+  "args": {
     "outputDir": "./surge",           // 输出文件到目录 ./surge
     "outputExtension": ".conf",       // 输出文件的扩展名为 .conf
     "wantedList": ["cn", "us", "jp"], // 只输出名为 cn、us、jp 这三个类别的 IPv4 地址
@@ -1080,6 +1203,7 @@
   - **outputDir**：（可选）输出目录
   - **outputExtension**：（可选）输出的文件的扩展名
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
   - **addPrefixInLine**：（可选）给输出的每一行添加的字符串前缀
   - **addSuffixInLine**：（可选）给输出的每一行添加的字符串后缀
@@ -1129,6 +1253,19 @@
   "type": "text",
   "action": "output",
   "args": {
+    "outputDir": "./text",              // 输出文件到目录 ./text
+    "outputExtension": ".conf",         // 输出文件的扩展名为 .conf
+    "excludedList": ["cn", "us", "jp"], // 不输出名为 cn、us、jp 这三个类别的 IPv4 和 IPv6 地址
+    "addPrefixInLine": "HOST,"
+  }
+}
+```
+
+```jsonc
+{
+  "type": "text",
+  "action": "output",
+  "args": {
     "outputDir": "./text",            // 输出文件到目录 ./text
     "outputExtension": ".conf",       // 输出文件的扩展名为 .conf
     "wantedList": ["cn", "us", "jp"], // 只输出名为 cn、us、jp 这三个类别的 IPv4 地址
@@ -1146,6 +1283,7 @@
   - **outputName**：（可选）输出的文件名
   - **outputDir**：（可选）输出目录
   - **wantedList**：（可选，数组）指定需要输出的类别
+  - **excludedList**：（可选，数组）指定不需要输出的类别
   - **onlyIPType**：（可选）输出的 IP 地址类型，值为 `ipv4` 或 `ipv6`
   - **oneFilePerList**：（可选）每个类别输出为一个单独的文件，值为 `true` 或 `false`（默认值）
 
@@ -1175,6 +1313,18 @@
     "outputDir": "./output",                   // 输出文件到 output 目录
     "outputName": "geoip-only-cn-private.dat", // 输出文件名为 geoip-only-cn-private.dat
     "wantedList": ["cn", "private"]            // 只输出 cn、private 类别
+  }
+}
+```
+
+```jsonc
+{
+  "type": "v2rayGeoIPDat",
+  "action": "output",
+  "args": {
+    "outputDir": "./output",                      // 输出文件到 output 目录
+    "outputName": "geoip-without-cn-private.dat", // 输出文件名为 geoip-without-cn-private.dat
+    "excludedList": ["cn", "private"]             // 不输出 cn、private 类别
   }
 }
 ```
